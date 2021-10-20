@@ -1,6 +1,6 @@
 package net.hirana;
 
-import net.hirana.push.FCMInitializer;
+import net.hirana.services.Database;
 import net.hirana.websocket.HncServer;
 import org.apache.log4j.Logger;
 
@@ -16,6 +16,7 @@ public class App
 
     public static void main( String[] args )
     {
+        Database.INSTANCE.init();
         //FCMInitializer.INSTANCE.init("fcm-credentials.json");
         try {
             HncServer wsServer = new HncServer(7000);

@@ -2,14 +2,17 @@ package net.hirana.websocket;
 
 import net.hirana.irc.IRClient;
 import net.hirana.services.ConnectionsService;
+import net.hirana.services.Database;
 import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -93,10 +96,24 @@ public class HncServer extends WebSocketServer {
             log.info("Loging with: " + userpass);
             udata.user = uparts[0];
             udata.password = uparts[1];
-            // TODO: validate user and password:
-
-
             try {
+                String bcryptPassword = Database.INSTANCE.getUserPassword(udata.user);
+                if(bcryptPassword == null) {
+                    sendAsServer(webSocket, "NOTICE", "Account doesn't exists.");
+                    webSocket.close();
+                    return;
+                }
+                String[] hashData = bcryptPassword.split(":");
+                if(hashData[0] == "bcrypt") {
+                    sendAsServer(webSocket, "NOTICE", "Unsupported account version.");
+                    webSocket.close();
+                    return;
+                }
+                if(!BCrypt.checkpw(udata.password, hashData[1])) {
+                    sendAsServer(webSocket, "NOTICE", "Invalid password.");
+                    webSocket.close();
+                    return;
+                }
                 boolean sendFakeMotd = ConnectionsService.INSTANCE.existsConnection(udata.nick);
                 log.debug(String.format("Exists connection %s %s", udata.nick, sendFakeMotd ? "YES" : "NO"));
                 udata.irc = ConnectionsService.INSTANCE.getConnection(udata.user, udata.nick);
@@ -105,8 +122,12 @@ public class HncServer extends WebSocketServer {
                     this.fakeStartSequence(webSocket);
                 }
             } catch (IOException e) {
-                log.error("Cannot create connection with IRC");
+                log.error("Cannot create connection with IRC", e);
                 sendAsServer(webSocket, "NOTICE", "Error creating bridge with irc.hirana.net");
+                webSocket.close();
+            } catch (SQLException sql) {
+                log.error("Error querying", sql);
+                sendAsServer(webSocket, "NOTICE", "Cannot validate your user account");
                 webSocket.close();
             }
         } else if(s.indexOf("PUSH") == 0) {
