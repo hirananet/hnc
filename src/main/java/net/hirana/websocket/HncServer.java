@@ -97,7 +97,8 @@ public class HncServer extends WebSocketServer {
 
 
             try {
-                boolean sendFakeMotd = !ConnectionsService.INSTANCE.existsConnection(udata.nick);
+                boolean sendFakeMotd = ConnectionsService.INSTANCE.existsConnection(udata.nick);
+                log.debug(String.format("Exists connection %s %s", udata.nick, sendFakeMotd ? "YES" : "NO"));
                 udata.irc = ConnectionsService.INSTANCE.getConnection(udata.user, udata.nick);
                 ConnectionsService.INSTANCE.assocWsWithUser(webSocket, udata.user);
                 if (sendFakeMotd) {
@@ -109,7 +110,7 @@ public class HncServer extends WebSocketServer {
                 webSocket.close();
             }
         } else if(s.indexOf("PUSH") == 0) {
-            String notification = s.split(" ")[1];
+            String notification = s.substring(s.indexOf(" ")+1);
             ConnectionsService.INSTANCE.setNotificationTokenToUser(udata.user, notification);
         } else {
             if(udata.irc != null) {

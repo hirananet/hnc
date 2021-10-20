@@ -16,7 +16,7 @@ public class App
 
     public static void main( String[] args )
     {
-        FCMInitializer.INSTANCE.init("fcm-credentials.json");
+        //FCMInitializer.INSTANCE.init("fcm-credentials.json");
         try {
             HncServer wsServer = new HncServer(7000);
             wsServer.start();

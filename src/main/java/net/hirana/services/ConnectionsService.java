@@ -51,6 +51,7 @@ public enum ConnectionsService {
     }
 
     public void setNotificationTokenToUser(String user, String token) {
+        log.debug(String.format("Setting push notification token for %s : %s",user,token));
         tokens.put(user, token);
     }
 
@@ -82,9 +83,9 @@ public enum ConnectionsService {
         if(privmsgIdx > 0 &&
            tokens.containsKey(user)
         ) {
-            String msg = message.substring(privmsgIdx);
+            String msg = message.substring(privmsgIdx+1);
             String nickOrChannel = msg.split(" ")[0];
-            String content = msg.substring(msg.indexOf(":"));
+            String content = msg.substring(msg.indexOf(":")+1);
             log.info("SEND NOTIFICATION OF "+nickOrChannel);
             if("#".equals(nickOrChannel.substring(0,1))) {
                 // is channel
