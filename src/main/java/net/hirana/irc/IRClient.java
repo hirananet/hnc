@@ -2,6 +2,7 @@ package net.hirana.irc;
 
 import net.hirana.irc.utils.IMessageCallback;
 import net.hirana.irc.utils.MessageHandler;
+import net.hirana.services.ConnectionsService;
 import org.apache.log4j.Logger;
 
 import java.io.*;
@@ -20,11 +21,15 @@ public class IRClient implements IMessageCallback {
     private final DataOutputStream bufferOut;
     private final BufferedReader bufferIn;
     private final MessageHandler handler;
+    private final String nick;
+    private final String user;
     private boolean connected;
 
-    public IRClient(String host, Integer puerto) throws IOException {
+    public IRClient(String host, Integer puerto, String user, String nick) throws IOException {
         this.host = host;
         this.puerto = puerto;
+        this.nick = nick;
+        this.user = user;
         InetAddress ip = InetAddress.getByName(host);
         this.ip = ip.getHostAddress();
         this.socket = new Socket(ip, puerto);
@@ -40,7 +45,7 @@ public class IRClient implements IMessageCallback {
         this.bufferOut.write(String.format("%s%s",message,"\r\n").getBytes());
     }
 
-    public void sendConnectionLine(String nick) throws IOException {
+    public void sendConnectionLine() throws IOException {
         this.sendMessage("ENCODING UTF-8");
         this.sendMessage(String.format("NICK %s", nick));
         this.sendMessage(String.format("USER %s * * :%s HncBouncer", nick, nick));
@@ -54,7 +59,7 @@ public class IRClient implements IMessageCallback {
     @Override
     public void onReady() {
         try {
-            this.sendConnectionLine("TestHnc");
+            this.sendConnectionLine();
         } catch (IOException e) {
             log.error("Error sending connection line", e);
         }
@@ -66,6 +71,8 @@ public class IRClient implements IMessageCallback {
         try {
             if(message.indexOf("PING") == 0) {
                 this.sendMessage("PONG " + message.substring(5));
+            } else {
+                ConnectionsService.INSTANCE.resendMessage(this.user, message);
             }
         } catch (Exception e) {
             log.error("Exception processing message: ", e);
