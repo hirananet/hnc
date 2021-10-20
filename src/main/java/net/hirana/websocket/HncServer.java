@@ -100,7 +100,7 @@ public class HncServer extends WebSocketServer {
                 boolean sendFakeMotd = !ConnectionsService.INSTANCE.existsConnection(udata.nick);
                 udata.irc = ConnectionsService.INSTANCE.getConnection(udata.user, udata.nick);
                 ConnectionsService.INSTANCE.assocWsWithUser(webSocket, udata.user);
-                if(sendFakeMotd) {
+                if (sendFakeMotd) {
                     this.fakeStartSequence(webSocket);
                 }
             } catch (IOException e) {
@@ -108,6 +108,9 @@ public class HncServer extends WebSocketServer {
                 sendAsServer(webSocket, "NOTICE", "Error creating bridge with irc.hirana.net");
                 webSocket.close();
             }
+        } else if(s.indexOf("PUSH") == 0) {
+            String notification = s.split(" ")[1];
+            ConnectionsService.INSTANCE.setNotificationTokenToUser(udata.user, notification);
         } else {
             if(udata.irc != null) {
                 try {

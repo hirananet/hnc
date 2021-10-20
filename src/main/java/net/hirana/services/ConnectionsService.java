@@ -1,6 +1,8 @@
 package net.hirana.services;
 
 import net.hirana.irc.IRClient;
+import net.hirana.push.FCMService;
+import net.hirana.push.PushNotificationRequest;
 import net.hirana.websocket.WsData;
 import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
@@ -21,6 +23,7 @@ public enum ConnectionsService {
     private Map<String, IRClient> clientsOfUsers = new HashMap<>();
     private Map<String, List<WsData>> wsList = new HashMap<>();
     private Map<String, List<String>> queuedMessages = new HashMap<>();
+    private Map<String, String> tokens = new HashMap<>();
 
     public boolean existsConnection(String user) {
         return clientsOfUsers.containsKey(user);
@@ -47,6 +50,10 @@ public enum ConnectionsService {
         }
     }
 
+    public void setNotificationTokenToUser(String user, String token) {
+        tokens.put(user, token);
+    }
+
     public void disassocWsWithUser(final Long connNumber, String user) {
         if(wsList.containsKey(user)) {
             wsList.get(user).removeIf(l -> l.connNumber == connNumber);
@@ -70,6 +77,31 @@ public enum ConnectionsService {
             queuedMessages.put(user, new ArrayList<>());
         }
         queuedMessages.get(user).add(message);
+        // enviar notificacion?
+        int privmsgIdx = message.indexOf(" PRIVMSG ");
+        if(privmsgIdx > 0 &&
+           tokens.containsKey(user)
+        ) {
+            String msg = message.substring(privmsgIdx);
+            String nickOrChannel = msg.split(" ")[0];
+            String content = msg.substring(msg.indexOf(":"));
+            log.info("SEND NOTIFICATION OF "+nickOrChannel);
+            if("#".equals(nickOrChannel.substring(0,1))) {
+                // is channel
+            } else {
+                // is private message:
+                PushNotificationRequest request = new PushNotificationRequest();
+                request.setMessage(content);
+                request.setTitle(nickOrChannel);
+                request.setToken(tokens.get(user));
+                log.debug(String.format("Sending notification of %s to %s", nickOrChannel, user));
+                try {
+                    FCMService.INSTANCE.sendMessageToToken(request);
+                } catch (Exception e) {
+                    log.error("Can't send notification", e);
+                }
+            }
+        }
     }
 
     public void sendQueuedMessages(String user, final WebSocket ws) {

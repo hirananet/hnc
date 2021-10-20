@@ -9,4 +9,5 @@ public class UserData {
     public boolean requestedCaps = false;
     public String encoding;
     public IRClient irc;
+    public String notificationHash;
 }
