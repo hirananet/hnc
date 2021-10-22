@@ -17,7 +17,7 @@ public enum FCMInitializer {
     public void init(String fileCredential) {
         if (FirebaseApp.getApps().isEmpty()) {
             try {
-                InputStream is = this.getClass().getClassLoader().getResourceAsStream(fileCredential);
+                InputStream is = getClass().getResourceAsStream(fileCredential);
                 FirebaseApp.initializeApp(
                         FirebaseOptions.builder()
                                 .setCredentials(
