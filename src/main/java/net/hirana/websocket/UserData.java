@@ -10,4 +10,5 @@ public class UserData {
     public String encoding;
     public IRClient irc;
     public String notificationHash;
+    public boolean identified = false;
 }
