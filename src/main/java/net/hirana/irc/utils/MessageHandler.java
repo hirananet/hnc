@@ -1,11 +1,13 @@
 package net.hirana.irc.utils;
-import org.apache.log4j.Logger;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
 public class MessageHandler extends Thread{
 
-    private static final Logger log = Logger.getLogger(MessageHandler.class);
+    private static final Logger log = LoggerFactory.getLogger(MessageHandler.class);
 
     final IMessageCallback irc;
     private boolean disconnected = false;

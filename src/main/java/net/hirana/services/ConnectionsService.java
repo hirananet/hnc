@@ -4,8 +4,9 @@ import net.hirana.irc.IRClient;
 import net.hirana.push.FCMService;
 import net.hirana.push.PushNotificationRequest;
 import net.hirana.websocket.WsData;
-import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -16,7 +17,7 @@ import java.util.Map;
 public enum ConnectionsService {
     INSTANCE;
 
-    private static final Logger log = Logger.getLogger(ConnectionsService.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionsService.class);
 
     private final String networkHost = "irc.hirana.net";
     private final Integer networkPort = 6667;

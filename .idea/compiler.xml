@@ -6,8 +6,11 @@
         <sourceOutputDir name="target/generated-sources/annotations" />
         <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
         <outputRelativeToContentRoot value="true" />
-        <module name="HNC" />
+        <module name="network-connection" />
       </profile>
     </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="HNC" target="8" />
+    </bytecodeTargetLevel>
   </component>
 </project>

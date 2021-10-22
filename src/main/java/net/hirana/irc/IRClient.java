@@ -3,16 +3,16 @@ package net.hirana.irc;
 import net.hirana.irc.utils.IMessageCallback;
 import net.hirana.irc.utils.MessageHandler;
 import net.hirana.services.ConnectionsService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.nio.charset.StandardCharsets;
 
 public class IRClient implements IMessageCallback {
 
-    private static final Logger log = Logger.getLogger(IRClient.class);
+    private static final Logger log = LoggerFactory.getLogger(IRClient.class);
 
     private final String host;
     private final String ip;

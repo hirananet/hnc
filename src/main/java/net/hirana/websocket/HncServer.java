@@ -3,11 +3,12 @@ package net.hirana.websocket;
 import net.hirana.irc.IRClient;
 import net.hirana.services.ConnectionsService;
 import net.hirana.services.Database;
-import org.apache.log4j.Logger;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
 import org.java_websocket.server.WebSocketServer;
 import org.mindrot.jbcrypt.BCrypt;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -20,7 +21,7 @@ public class HncServer extends WebSocketServer {
 
     private static final String hostName = "hnc.hirana.net";
 
-    private static final Logger log = Logger.getLogger(IRClient.class);
+    private static final Logger log = LoggerFactory.getLogger(IRClient.class);
 
     private final int port;
     private final int timeoutSeconds = 3;

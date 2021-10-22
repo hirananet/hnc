@@ -4,14 +4,15 @@ import com.google.auth.oauth2.GoogleCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import net.hirana.services.ConnectionsService;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.*;
 
 public enum FCMInitializer {
     INSTANCE;
 
-    private static final Logger log = Logger.getLogger(ConnectionsService.class);
+    private static final Logger log = LoggerFactory.getLogger(ConnectionsService.class);
 
     public void init(String fileCredential) {
         if (FirebaseApp.getApps().isEmpty()) {

@@ -9,7 +9,8 @@ import com.google.firebase.messaging.Message;
 import com.google.firebase.messaging.Notification;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
-import org.apache.log4j.Logger;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.time.Duration;
 import java.util.Map;
@@ -18,7 +19,7 @@ import java.util.concurrent.ExecutionException;
 public enum FCMService {
     INSTANCE;
 
-    private static final Logger logger = Logger.getLogger(FCMService.class);
+    private static final Logger logger = LoggerFactory.getLogger(FCMService.class);
 
     public void sendMessage(Map<String, String> data, PushNotificationRequest request)
             throws InterruptedException, ExecutionException {
