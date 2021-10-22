@@ -17,7 +17,7 @@ public enum Database {
     private Connection conn;
 
     public void init() throws SQLException {
-        config.setDriverClassName("com.mysql.jdbc.Driver");
+//        config.setDriverClassName("com.mysql.cj.jdbc.Driver");
         config.setJdbcUrl( getUrl(System.getenv("DB_HOST"), Integer.parseInt(System.getenv("DB_PORT")), System.getenv("DB_NAME")) );
         config.setUsername( System.getenv("DB_USERNAME"));
         config.setPassword( System.getenv("DB_PASSWORD") );
