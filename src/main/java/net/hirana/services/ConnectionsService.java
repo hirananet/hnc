@@ -97,12 +97,18 @@ public enum ConnectionsService {
             String msg = message.substring(privmsgIdx+1);
             String nickOrChannel = msg.split(" ")[0];
             String content = msg.substring(msg.indexOf(":")+1);
+            boolean send = false;
             log.info("SEND NOTIFICATION OF "+nickOrChannel);
             if("#".equals(nickOrChannel.substring(0,1))) {
                 // is channel
-
+                String pingNick = "@"+lastNick.get(user);
+                String pingUser = "@"+user;
+                send = true;
             } else {
                 // is private message:
+                send = true;
+            }
+            if(send) {
                 PushNotificationRequest request = new PushNotificationRequest();
                 request.setMessage(content);
                 request.setTitle(nickOrChannel);
