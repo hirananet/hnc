@@ -1,5 +1,6 @@
 package net.hirana;
 
+import net.hirana.push.FCMInitializer;
 import net.hirana.services.Database;
 import net.hirana.websocket.HncServer;
 import org.apache.log4j.Logger;
@@ -23,7 +24,7 @@ public class App
             log.error("Can't connection sql database", exc);
             return;
         }
-        //FCMInitializer.INSTANCE.init("hirana-firebase.json");
+        FCMInitializer.INSTANCE.init("hirana-firebase.json");
         try {
             HncServer wsServer = new HncServer(7000);
             wsServer.start();

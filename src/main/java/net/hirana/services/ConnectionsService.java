@@ -24,9 +24,14 @@ public enum ConnectionsService {
     private Map<String, List<WsData>> wsList = new HashMap<>();
     private Map<String, List<String>> queuedMessages = new HashMap<>();
     private Map<String, String> tokens = new HashMap<>();
+    private Map<String, String> lastNick = new HashMap<>();
 
     public boolean existsConnection(String user) {
         return clientsOfUsers.containsKey(user);
+    }
+
+    public void setLastNick(String user, String nick) {
+        lastNick.put(user, nick);
     }
 
     public IRClient getConnection(String user, String nick) throws IOException {
@@ -95,6 +100,7 @@ public enum ConnectionsService {
             log.info("SEND NOTIFICATION OF "+nickOrChannel);
             if("#".equals(nickOrChannel.substring(0,1))) {
                 // is channel
+
             } else {
                 // is private message:
                 PushNotificationRequest request = new PushNotificationRequest();

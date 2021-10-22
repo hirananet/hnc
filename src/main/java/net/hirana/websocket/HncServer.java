@@ -12,6 +12,7 @@ import org.mindrot.jbcrypt.BCrypt;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
+import java.sql.Connection;
 import java.sql.SQLException;
 import java.util.HashMap;
 import java.util.Map;
@@ -92,6 +93,7 @@ public class HncServer extends WebSocketServer {
         } else if(s.indexOf("NICK") == 0) {
             log.info("Setting new nick");
             udata.nick = s.split(" ")[1];
+            ConnectionsService.INSTANCE.setLastNick(udata.user != null ? udata.user : udata.nick, udata.nick);
             if(udata.irc != null) {
                 try {
                     udata.irc.sendMessage(String.format("NICK %s", udata.nick));
@@ -103,6 +105,7 @@ public class HncServer extends WebSocketServer {
             String userpass = parts.length > 1 ? parts[1] : "";
             String[] uparts = userpass.split(":");
             udata.user = uparts[0];
+            ConnectionsService.INSTANCE.setLastNick(udata.user, udata.nick != null ? udata.nick : udata.user);
             udata.password = uparts[1];
             log.info("Loging with: " + udata.user);
             try {
