@@ -92,6 +92,13 @@ public class HncServer extends WebSocketServer {
         } else if(s.indexOf("NICK") == 0) {
             log.info("Setting new nick");
             udata.nick = s.split(" ")[1];
+            if(udata.irc != null) {
+                try {
+                    udata.irc.sendMessage(String.format("NICK %s", udata.nick));
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
         } else if(s.indexOf("PASS") == 0) {
             String userpass = parts.length > 1 ? parts[1] : "";
             String[] uparts = userpass.split(":");

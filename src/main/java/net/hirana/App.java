@@ -23,7 +23,7 @@ public class App
             log.error("Can't connection sql database", exc);
             return;
         }
-        //FCMInitializer.INSTANCE.init("fcm-credentials.json");
+        //FCMInitializer.INSTANCE.init("hirana-firebase.json");
         try {
             HncServer wsServer = new HncServer(7000);
             wsServer.start();
