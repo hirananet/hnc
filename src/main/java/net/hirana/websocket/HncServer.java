@@ -27,6 +27,8 @@ public class HncServer extends WebSocketServer {
     private long connectionNumber = 0;
     private Map<Long, UserData> udatas = new HashMap();
 
+    private static final Database db = Database.INSTANCE;
+
     public HncServer(int port) throws UnknownHostException {
         super(new InetSocketAddress(port));
         this.port = port;
@@ -93,11 +95,11 @@ public class HncServer extends WebSocketServer {
         } else if(s.indexOf("PASS") == 0) {
             String userpass = parts.length > 1 ? parts[1] : "";
             String[] uparts = userpass.split(":");
-            log.info("Loging with: " + userpass);
             udata.user = uparts[0];
             udata.password = uparts[1];
+            log.info("Loging with: " + udata.user);
             try {
-                String bcryptPassword = Database.INSTANCE.getUserPassword(udata.user);
+                String bcryptPassword = db.getUserPassword(udata.user);
                 if(bcryptPassword == null) {
                     sendAsServer(webSocket, "NOTICE", "Account doesn't exists.");
                     webSocket.close();

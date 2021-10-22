@@ -65,7 +65,13 @@ public enum ConnectionsService {
         if(wsList.containsKey(user)) {
             List<WsData> ls = wsList.get(user);
             if(ls.size() > 0) {
-                ls.forEach(ws -> ws.ws.send(message));
+                ls.forEach(ws -> {
+                    if(ws.ws.isOpen()) {
+                        ws.ws.send(message);
+                    } else {
+                        log.info("Detected socket memory leak?");
+                    }
+                });
             } else {
                 log.info("Adding to queue for " + user + ": " + message);
                 addMessageToQueue(user, message);
