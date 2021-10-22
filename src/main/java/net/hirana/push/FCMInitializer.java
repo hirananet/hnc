@@ -18,6 +18,10 @@ public enum FCMInitializer {
         if (FirebaseApp.getApps().isEmpty()) {
             try {
                 InputStream is = getClass().getResourceAsStream(fileCredential);
+                if(is == null) {
+                    log.info("Can't read fcm credentials from resources, reading from specific location");
+                    is = new FileInputStream(String.format("/app/credentials%s", fileCredential));
+                }
                 FirebaseApp.initializeApp(
                         FirebaseOptions.builder()
                                 .setCredentials(
