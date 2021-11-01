@@ -108,4 +108,8 @@ public class IRClient implements IMessageCallback {
         }
     }
 
+    public String getNick() {
+        return this.nick;
+    }
+
 }

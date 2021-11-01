@@ -61,6 +61,21 @@ public enum ConnectionsService {
         tokens.put(user, token);
     }
 
+    public String getNotificationTokenFromUser(String user) {
+        return tokens.get(user);
+    }
+
+    public boolean isConnected(String user) {
+        return clientsOfUsers.containsKey(user);
+    }
+
+    public String getUserNick(String user) {
+        if(!isConnected(user)) {
+            return "N/A";
+        }
+        return clientsOfUsers.get(user).getNick();
+    }
+
     public void disassocWsWithUser(final Long connNumber, String user) {
         if(wsList.containsKey(user)) {
             wsList.get(user).removeIf(l -> l.connNumber == connNumber);

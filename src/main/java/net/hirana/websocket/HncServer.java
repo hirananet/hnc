@@ -143,7 +143,7 @@ public class HncServer extends WebSocketServer {
                 sendAsServer(webSocket, "NOTICE", "Cannot validate your user account");
                 webSocket.close();
             }
-        } else if(s.indexOf("HQUIT") == 0) {
+        } else if(s.indexOf("HQUIT") == 0) { // force irc disconnection
             if(!udata.identified) {
                 webSocket.close();
                 return;
@@ -154,6 +154,15 @@ public class HncServer extends WebSocketServer {
             } catch (IOException e) {
                 log.info(String.format("Can't clear instance of user %s", udata.user), e);
             }
+        } else if(s.indexOf("HNCINFO") == 0) { // get information about connection
+            if(!udata.identified) {
+                webSocket.close();
+                return;
+            }
+            sendAsServer(webSocket, "H01", ConnectionsService.INSTANCE.getNotificationTokenFromUser(udata.user));
+            sendAsServer(webSocket, "H02", udata.nick);
+            sendAsServer(webSocket, "H03", ConnectionsService.INSTANCE.isConnected(udata.user) ? "YES" : "NO");
+            sendAsServer(webSocket, "H04", ConnectionsService.INSTANCE.getUserNick(udata.user));
         } else if(s.indexOf("PUSH") == 0) {
             String notification = s.substring(s.indexOf(" ")+1);
             ConnectionsService.INSTANCE.setNotificationTokenToUser(udata.user, notification);
