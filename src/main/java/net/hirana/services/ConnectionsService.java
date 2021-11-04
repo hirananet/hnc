@@ -113,7 +113,7 @@ public enum ConnectionsService {
             String nickOrChannel = msg.split(" ")[1];
             String content = msg.substring(msg.indexOf(":")+1);
             boolean send = false;
-            log.info("SEND NOTIFICATION OF "+nickOrChannel);
+            log.info("SEND NOTIFICATION OF "+nickOrChannel+" Fletter: " + nickOrChannel.substring(0,1));
             if("#".equals(nickOrChannel.substring(0,1))) {
                 // is channel
                 String pingNick = lastNick.get(user);
