@@ -1,9 +1,12 @@
 package net.hirana.services;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
 public enum Redis {
     INSTANCE;
+    private static final Logger log = LoggerFactory.getLogger(Redis.class);
 
     private final String host = System.getenv("REDIS_HOST") != null ? System.getenv("REDIS_HOST") : "localhost";
     private final int port = System.getenv("REDIS_PORT") != null ? Integer.parseInt(System.getenv("REDIS_PORT")) : 6379;
@@ -13,6 +16,7 @@ public enum Redis {
     public void init() {
         this.jedis = new Jedis(host, port);
         this.jedis.auth(password);
+        log.info("Redis with password " + password);
     }
 
     public void setValue(String key, String value) {
