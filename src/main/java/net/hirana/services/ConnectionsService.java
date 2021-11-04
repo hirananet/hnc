@@ -105,8 +105,8 @@ public enum ConnectionsService {
         queuedMessages.get(user).add(message);
         // enviar notificacion?
         int privmsgIdx = message.indexOf(" PRIVMSG ");
-        String initialSender = message.substring(0, message.indexOf("!"));
         if(privmsgIdx > 0 && Redis.INSTANCE.exists(String.format("FCM-%s", user))) {
+            String initialSender = message.substring(1, message.indexOf("!"));
             String msg = message.substring(privmsgIdx+1);
             String nickOrChannel = msg.split(" ")[1];
             String content = msg.substring(msg.indexOf(":")+1);
