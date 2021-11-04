@@ -4,6 +4,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import redis.clients.jedis.Jedis;
 
+import java.net.URI;
+import java.net.URISyntaxException;
+
 public enum Redis {
     INSTANCE;
     private static final Logger log = LoggerFactory.getLogger(Redis.class);
@@ -13,10 +16,11 @@ public enum Redis {
     private final String password = System.getenv("REDIS_PASSWORD") != null ? System.getenv("REDIS_PASSWORD") : "local";
     private Jedis jedis;
 
-    public void init() {
-        this.jedis = new Jedis(host, port);
-        this.jedis.auth(password);
-        log.info("Redis with password " + password);
+    public void init() throws URISyntaxException {
+        String user = "";
+        String format = String.format("redis://%s:%s@%s:%d", user, password, host, port);
+        log.info("Redis with password " + format);
+        this.jedis = new Jedis(new URI(format));
     }
 
     public void setValue(String key, String value) {

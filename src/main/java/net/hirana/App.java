@@ -7,6 +7,7 @@ import net.hirana.websocket.HncServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.net.URISyntaxException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 
@@ -20,7 +21,12 @@ public class App
 
     public static void main( String[] args )
     {
-        Redis.INSTANCE.init();
+        try {
+            Redis.INSTANCE.init();
+        } catch (Exception e) {
+            log.error("Can't connection redis database", e);
+            return;
+        }
         try {
             Database.INSTANCE.init();
         } catch(SQLException exc) {
