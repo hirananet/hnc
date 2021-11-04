@@ -106,6 +106,7 @@ public enum ConnectionsService {
         queuedMessages.get(user).add(message);
         // enviar notificacion?
         int privmsgIdx = message.indexOf(" PRIVMSG ");
+        String initialSender = message.substring(0, message.indexOf("!"));
         if(privmsgIdx > 0 &&
            tokens.containsKey(user)
         ) {
@@ -139,7 +140,7 @@ public enum ConnectionsService {
                     lastNotificationSended.put(user, new Date());
                 } else {
                     Date now = new Date();
-                    if(lastNotificationSended.get(user).getTime() + 10000 < now.getTime()) { // pasaron 10 secs desde la ultima notificacion?
+                    if(lastNotificationSended.get(user).getTime() + 20000 < now.getTime()) { // pasaron 10 secs desde la ultima notificacion?
                         lastNotificationSended.put(user, now);
                     } else {
                         send = false;
@@ -149,7 +150,7 @@ public enum ConnectionsService {
             if(send) {
                 PushNotificationRequest request = new PushNotificationRequest();
                 request.setMessage(content);
-                request.setTitle(nickOrChannel);
+                request.setTitle(isChannel ? String.format("%s - %s", nickOrChannel, initialSender) : nickOrChannel);
                 request.setToken(tokens.get(user));
                 log.debug(String.format("Sending notification of %s to %s", nickOrChannel, user));
                 try {
