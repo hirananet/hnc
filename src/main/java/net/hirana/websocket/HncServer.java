@@ -93,10 +93,10 @@ public class HncServer extends WebSocketServer {
         } else if(s.indexOf("NICK") == 0) {
             log.info("Setting new nick");
             udata.nick = s.split(" ")[1];
-            ConnectionsService.INSTANCE.setLastNick(udata.user != null ? udata.user : udata.nick, udata.nick);
             if(udata.irc != null) {
                 try {
                     udata.irc.sendMessage(String.format("NICK %s", udata.nick));
+                    ConnectionsService.INSTANCE.setLastNick(udata.user != null ? udata.user : udata.nick, udata.nick);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -111,24 +111,27 @@ public class HncServer extends WebSocketServer {
             try {
                 String bcryptPassword = db.getUserPassword(udata.user);
                 if(bcryptPassword == null) {
+                    log.debug("Account doesn't exists.");
                     sendAsServer(webSocket, "NOTICE", "Account doesn't exists.");
                     webSocket.close();
                     return;
                 }
                 String[] hashData = bcryptPassword.split(":");
                 if(hashData[0] == "bcrypt") {
+                    log.debug("Unsupported account version.");
                     sendAsServer(webSocket, "NOTICE", "Unsupported account version.");
                     webSocket.close();
                     return;
                 }
                 if(!BCrypt.checkpw(udata.password, hashData[1])) {
+                    log.debug("Invalid password.");
                     sendAsServer(webSocket, "NOTICE", "Invalid password.");
                     webSocket.close();
                     return;
                 }
                 udata.identified = true;
-                boolean sendFakeMotd = ConnectionsService.INSTANCE.existsConnection(udata.nick);
-                log.debug(String.format("Exists connection %s %s", udata.nick, sendFakeMotd ? "YES" : "NO"));
+                boolean sendFakeMotd = ConnectionsService.INSTANCE.existsConnection(udata.user);
+                log.debug(String.format("Exists connection %s %s", udata.user, sendFakeMotd ? "YES" : "NO"));
                 udata.irc = ConnectionsService.INSTANCE.getConnection(udata.user, udata.nick);
                 ConnectionsService.INSTANCE.assocWsWithUser(webSocket, udata.user);
                 if (sendFakeMotd) {
