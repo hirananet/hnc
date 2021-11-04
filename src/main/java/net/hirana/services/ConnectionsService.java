@@ -148,12 +148,13 @@ public enum ConnectionsService {
                 PushNotificationRequest request = new PushNotificationRequest();
                 request.setMessage(content);
                 request.setTitle(isChannel ? String.format("%s - %s", nickOrChannel, initialSender) : nickOrChannel);
-                request.setToken(Redis.INSTANCE.getValue(String.format("FCM-%s", user)));
+                String fcmToken = Redis.INSTANCE.getValue(String.format("FCM-%s", user));
+                request.setToken(fcmToken);
                 log.debug(String.format("Sending notification of %s to %s", nickOrChannel, user));
                 try {
                     FCMService.INSTANCE.sendMessageToToken(request);
                 } catch (Exception e) {
-                    log.error("Can't send notification", e);
+                    log.error(String.format("Can't send notification %s", fcmToken), e);
                 }
             }
         }
