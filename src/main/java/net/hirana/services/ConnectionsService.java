@@ -120,13 +120,13 @@ public enum ConnectionsService {
                 log.info("Starting processing nick");
                 String pingNick = lastNick.get(user);
                 String pingUser = user;
-                String regex = String.format("(^|\\s)%s(\\s|$)",Pattern.quote(pingNick));
+                String regex = String.format("(^|\\s)%s(\\s|$)",pingNick);
                 boolean pingToNick = Pattern.matches(regex, content);
                 log.info("Matches nick for: " + regex + (pingToNick ? "  =yes" : "  =no"));
                 if(pingToNick) {
                     send = true;
                 } else {
-                    regex = String.format("(^|\\s)%s(\\s|$)",Pattern.quote(pingUser));
+                    regex = String.format("(^|\\s)%s(\\s|$)",pingUser);
                     boolean pingToUser = Pattern.matches(regex, content);
                     log.info("Matches user for: " + regex + (pingToUser ? "  =yes" : "  =no"));
                     if(pingToUser) {
