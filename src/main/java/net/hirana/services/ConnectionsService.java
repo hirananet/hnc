@@ -22,7 +22,6 @@ public enum ConnectionsService {
     private Map<String, IRClient> clientsOfUsers = new HashMap<>();
     private Map<String, List<WsData>> wsList = new HashMap<>();
     private Map<String, List<String>> queuedMessages = new HashMap<>();
-    private Map<String, String> tokens = new HashMap<>();
     private Map<String, String> lastNick = new HashMap<>();
     private Map<String, Date> lastNotificationSended = new HashMap<>();
 
@@ -57,11 +56,11 @@ public enum ConnectionsService {
 
     public void setNotificationTokenToUser(String user, String token) {
         log.debug(String.format("Setting push notification token for %s : %s",user,token));
-        tokens.put(user, token);
+        Redis.INSTANCE.setValue(String.format("FCM-%s", user), token);
     }
 
     public String getNotificationTokenFromUser(String user) {
-        return tokens.get(user);
+        return Redis.INSTANCE.exists(user) ? Redis.INSTANCE.getValue(String.format("FCM-%s", user)) : "NotDefined";
     }
 
     public boolean isConnected(String user) {
@@ -107,9 +106,7 @@ public enum ConnectionsService {
         // enviar notificacion?
         int privmsgIdx = message.indexOf(" PRIVMSG ");
         String initialSender = message.substring(0, message.indexOf("!"));
-        if(privmsgIdx > 0 &&
-           tokens.containsKey(user)
-        ) {
+        if(privmsgIdx > 0 && Redis.INSTANCE.exists(String.format("FCM-%s", user))) {
             String msg = message.substring(privmsgIdx+1);
             String nickOrChannel = msg.split(" ")[1];
             String content = msg.substring(msg.indexOf(":")+1);
@@ -151,7 +148,7 @@ public enum ConnectionsService {
                 PushNotificationRequest request = new PushNotificationRequest();
                 request.setMessage(content);
                 request.setTitle(isChannel ? String.format("%s - %s", nickOrChannel, initialSender) : nickOrChannel);
-                request.setToken(tokens.get(user));
+                request.setToken(Redis.INSTANCE.getValue(String.format("FCM-%s", user)));
                 log.debug(String.format("Sending notification of %s to %s", nickOrChannel, user));
                 try {
                     FCMService.INSTANCE.sendMessageToToken(request);

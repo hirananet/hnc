@@ -2,6 +2,7 @@ package net.hirana;
 
 import net.hirana.push.FCMInitializer;
 import net.hirana.services.Database;
+import net.hirana.services.Redis;
 import net.hirana.websocket.HncServer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +20,7 @@ public class App
 
     public static void main( String[] args )
     {
+        Redis.INSTANCE.init();
         try {
             Database.INSTANCE.init();
         } catch(SQLException exc) {
