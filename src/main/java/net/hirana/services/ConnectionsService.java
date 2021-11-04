@@ -113,20 +113,22 @@ public enum ConnectionsService {
             String nickOrChannel = msg.split(" ")[1];
             String content = msg.substring(msg.indexOf(":")+1);
             boolean send = false;
-            log.info("SEND NOTIFICATION OF "+nickOrChannel+" Fletter: " + nickOrChannel.substring(0,1));
-            if("#".equals(nickOrChannel.substring(0,1))) {
+            boolean isChannel = "#".equals(nickOrChannel.substring(0,1));
+            log.info("SEND NOTIFICATION OF "+nickOrChannel+" Fletter: " + nickOrChannel.substring(0,1) + (isChannel?" =YES" : "=NO"));
+            if(isChannel) {
                 // is channel
+                log.info("Starting processing nick");
                 String pingNick = lastNick.get(user);
                 String pingUser = user;
                 String regex = String.format("(^|\\s)%s(\\s|$)",Pattern.quote(pingNick));
                 boolean pingToNick = Pattern.matches(regex, content);
-                log.debug("Matches nick for: " + regex + (pingToNick ? "  =yes" : "  =no"));
+                log.info("Matches nick for: " + regex + (pingToNick ? "  =yes" : "  =no"));
                 if(pingToNick) {
                     send = true;
                 } else {
                     regex = String.format("(^|\\s)%s(\\s|$)",Pattern.quote(pingUser));
                     boolean pingToUser = Pattern.matches(regex, content);
-                    log.debug("Matches user for: " + regex + (pingToUser ? "  =yes" : "  =no"));
+                    log.info("Matches user for: " + regex + (pingToUser ? "  =yes" : "  =no"));
                     if(pingToUser) {
                         send = true;
                     }
