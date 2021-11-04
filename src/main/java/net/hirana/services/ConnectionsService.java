@@ -147,7 +147,7 @@ public enum ConnectionsService {
             if(send) {
                 PushNotificationRequest request = new PushNotificationRequest();
                 request.setMessage(content);
-                request.setTitle(isChannel ? String.format("%s - %s", nickOrChannel, initialSender) : nickOrChannel);
+                request.setTitle(isChannel ? String.format("%s - %s", nickOrChannel, initialSender) : initialSender);
                 String fcmToken = Redis.INSTANCE.getValue(String.format("FCM-%s", user));
                 request.setToken(fcmToken);
                 log.debug(String.format("Sending notification of %s to %s", nickOrChannel, user));
