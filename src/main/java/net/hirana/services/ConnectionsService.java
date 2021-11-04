@@ -9,10 +9,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
+import java.util.regex.Pattern;
 
 public enum ConnectionsService {
     INSTANCE;
@@ -26,6 +24,7 @@ public enum ConnectionsService {
     private Map<String, List<String>> queuedMessages = new HashMap<>();
     private Map<String, String> tokens = new HashMap<>();
     private Map<String, String> lastNick = new HashMap<>();
+    private Map<String, Date> lastNotificationSended = new HashMap<>();
 
     public boolean existsConnection(String user) {
         return clientsOfUsers.containsKey(user);
@@ -90,7 +89,7 @@ public enum ConnectionsService {
                     if(ws.ws.isOpen()) {
                         ws.ws.send(message);
                     } else {
-                        log.info("Detected socket memory leak?");
+                        log.error("Detected socket memory leak?");
                     }
                 });
             } else {
@@ -111,18 +110,42 @@ public enum ConnectionsService {
            tokens.containsKey(user)
         ) {
             String msg = message.substring(privmsgIdx+1);
-            String nickOrChannel = msg.split(" ")[0];
+            String nickOrChannel = msg.split(" ")[1];
             String content = msg.substring(msg.indexOf(":")+1);
             boolean send = false;
             log.info("SEND NOTIFICATION OF "+nickOrChannel);
             if("#".equals(nickOrChannel.substring(0,1))) {
                 // is channel
-                String pingNick = "@"+lastNick.get(user);
-                String pingUser = "@"+user;
-                send = true;
+                String pingNick = lastNick.get(user);
+                String pingUser = user;
+                String regex = String.format("(^|\\s)%s(\\s|$)",Pattern.quote(pingNick));
+                boolean pingToNick = Pattern.matches(regex, content);
+                log.debug("Matches nick for: " + regex + (pingToNick ? "  =yes" : "  =no"));
+                if(pingToNick) {
+                    send = true;
+                } else {
+                    regex = String.format("(^|\\s)%s(\\s|$)",Pattern.quote(pingUser));
+                    boolean pingToUser = Pattern.matches(regex, content);
+                    log.debug("Matches user for: " + regex + (pingToUser ? "  =yes" : "  =no"));
+                    if(pingToUser) {
+                        send = true;
+                    }
+                }
             } else {
                 // is private message:
                 send = true;
+            }
+            if(send) {
+                if(!lastNotificationSended.containsKey(user)) {
+                    lastNotificationSended.put(user, new Date());
+                } else {
+                    Date now = new Date();
+                    if(lastNotificationSended.get(user).getTime() + 10000 < now.getTime()) { // pasaron 10 secs desde la ultima notificacion?
+                        lastNotificationSended.put(user, now);
+                    } else {
+                        send = false;
+                    }
+                }
             }
             if(send) {
                 PushNotificationRequest request = new PushNotificationRequest();
