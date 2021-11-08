@@ -67,7 +67,7 @@ public class IRClient implements IMessageCallback {
 
     @Override
     public void onMessageReceived(String message) {
-        log.info(String.format("Message received: %s", message));
+        log.debug(String.format("Message received: %s", message));
         try {
             if(message.indexOf("PING") == 0) {
                 this.sendMessage("PONG " + message.substring(5));
