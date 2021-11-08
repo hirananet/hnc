@@ -23,6 +23,10 @@ public enum Redis {
         this.jedis = new Jedis(new URI(format));
     }
 
+    public void remove(String key) {
+        this.jedis.del(key);
+    }
+
     public void setValue(String key, String value) {
         this.jedis.set(key, value);
     }

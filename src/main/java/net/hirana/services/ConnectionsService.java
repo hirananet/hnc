@@ -1,5 +1,8 @@
 package net.hirana.services;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jdk.internal.org.objectweb.asm.TypeReference;
 import net.hirana.irc.IRClient;
 import net.hirana.push.FCMService;
 import net.hirana.push.PushNotificationRequest;
@@ -41,6 +44,7 @@ public enum ConnectionsService {
         IRClient client = new IRClient(networkHost, networkPort, user, nick);
         clientsOfUsers.put(user, client);
         queuedMessages.put(user, new ArrayList<>());
+        readOldMessagesFromRedis(user);
         return client;
     }
 
@@ -102,7 +106,17 @@ public enum ConnectionsService {
         if(queuedMessages.get(user) == null) {
             queuedMessages.put(user, new ArrayList<>());
         }
-        queuedMessages.get(user).add(message);
+        List<String> messages = queuedMessages.get(user);
+        if(messages.size() > 1000) { // max 1k messages
+            messages.remove(0); // remove first
+        }
+        messages.add(message);
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            Redis.INSTANCE.setValue(String.format("MSG-%s", user), objectMapper.writeValueAsString(messages));
+        } catch (JsonProcessingException e) {
+            log.error("Cant stringify json", e);
+        }
         // enviar notificacion?
         int privmsgIdx = message.indexOf(" PRIVMSG ");
         if(privmsgIdx > 0 && Redis.INSTANCE.exists(String.format("FCM-%s", user))) {
@@ -167,6 +181,24 @@ public enum ConnectionsService {
             log.info(">>> Queue Sending " + m);
         });
         queuedMessages.get(user).clear();
+        Redis.INSTANCE.remove(String.format("MSG-%s", user));
+    }
+
+    public void readOldMessagesFromRedis(String user) { // this is for restarts
+        if(!Redis.INSTANCE.exists(String.format("MSG-%s", user))) return;
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            this.queuedMessages.get(user).addAll(
+                    Arrays.asList(
+                        objectMapper.readValue(
+                                Redis.INSTANCE.getValue(String.format("MSG-%s", user)),
+                                String[].class
+                        )
+                    )
+            );
+        } catch (JsonProcessingException e) {
+            log.error("Can't deserialize messages", e);
+        }
     }
 
     public void clearConnection(String user) throws IOException {
