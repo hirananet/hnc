@@ -215,6 +215,8 @@ public enum ConnectionsService {
         public String nick;
         public String user;
 
+        UserRecoveryData() { }
+
         UserRecoveryData(String nick, String user) {
             this.nick = nick;
             this.user = user;
