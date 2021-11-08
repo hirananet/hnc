@@ -2,7 +2,6 @@ package net.hirana.services;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jdk.internal.org.objectweb.asm.TypeReference;
 import net.hirana.irc.IRClient;
 import net.hirana.push.FCMService;
 import net.hirana.push.PushNotificationRequest;
