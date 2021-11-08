@@ -43,7 +43,6 @@ public enum ConnectionsService {
         IRClient client = new IRClient(networkHost, networkPort, user, nick);
         clientsOfUsers.put(user, client);
         queuedMessages.put(user, new ArrayList<>());
-        readOldMessagesFromRedis(user);
         return client;
     }
 
@@ -183,7 +182,7 @@ public enum ConnectionsService {
         Redis.INSTANCE.remove(String.format("MSG-%s", user));
     }
 
-    public void readOldMessagesFromRedis(String user) { // this is for restarts
+    public void readOldMessagesFromRedis(WebSocket ws, String user) { // this is for restarts
         if(!Redis.INSTANCE.exists(String.format("MSG-%s", user))) return;
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -195,6 +194,7 @@ public enum ConnectionsService {
                         )
                     )
             );
+            sendQueuedMessages(user, ws);
         } catch (JsonProcessingException e) {
             log.error("Can't deserialize messages", e);
         }

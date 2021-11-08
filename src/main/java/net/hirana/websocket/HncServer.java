@@ -134,6 +134,7 @@ public class HncServer extends WebSocketServer {
                 log.debug(String.format("Exists connection %s %s", udata.user, sendFakeMotd ? "YES" : "NO"));
                 udata.irc = ConnectionsService.INSTANCE.getConnection(udata.user, udata.nick);
                 ConnectionsService.INSTANCE.assocWsWithUser(webSocket, udata.user);
+                ConnectionsService.INSTANCE.readOldMessagesFromRedis(webSocket, udata.user);
                 if (sendFakeMotd) {
                     this.fakeStartSequence(webSocket);
                 }
