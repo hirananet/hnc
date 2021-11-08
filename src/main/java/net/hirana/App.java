@@ -1,6 +1,7 @@
 package net.hirana;
 
 import net.hirana.push.FCMInitializer;
+import net.hirana.services.ConnectionsService;
 import net.hirana.services.Database;
 import net.hirana.services.Redis;
 import net.hirana.websocket.HncServer;
@@ -34,6 +35,7 @@ public class App
             return;
         }
         FCMInitializer.INSTANCE.init("/hirana-firebase.json");
+        ConnectionsService.INSTANCE.recoverUsersConnections();
         try {
             HncServer wsServer = new HncServer(7000);
             wsServer.start();

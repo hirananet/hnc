@@ -35,7 +35,7 @@ public enum ConnectionsService {
         lastNick.put(user, nick);
     }
 
-    public IRClient getConnection(String user, String nick) throws IOException {
+    public IRClient getConnection(String user, String nick, boolean saveNewUsers) throws IOException {
         if(clientsOfUsers.containsKey(user)) {
             return clientsOfUsers.get(user);
         }
@@ -43,6 +43,9 @@ public enum ConnectionsService {
         IRClient client = new IRClient(networkHost, networkPort, user, nick);
         clientsOfUsers.put(user, client);
         queuedMessages.put(user, new ArrayList<>());
+        if(saveNewUsers) {
+            saveNewUsers();
+        }
         return client;
     }
 
@@ -205,6 +208,49 @@ public enum ConnectionsService {
             IRClient irc = clientsOfUsers.get(user);
             clientsOfUsers.remove(user);
             irc.close();
+        }
+    }
+
+    public static class UserRecoveryData {
+        public String nick;
+        public String user;
+
+        UserRecoveryData(String nick, String user) {
+            this.nick = nick;
+            this.user = user;
+        }
+    }
+
+    public void saveNewUsers() {
+        List<UserRecoveryData> users = new ArrayList<>();
+        for(Map.Entry<String, IRClient> set: clientsOfUsers.entrySet()) {
+            users.add(new UserRecoveryData(set.getValue().getNick(), set.getKey()));
+        }
+        ObjectMapper om = new ObjectMapper();
+        try {
+            Redis.INSTANCE.setValue("RECOVERY-LIST", om.writeValueAsString(users));
+        } catch (JsonProcessingException e) {
+            log.error("Can't save recovery list because can't serialize", e);
+        }
+    }
+
+    public void recoverUsersConnections() {
+        log.info("Recovering users connections");
+        if(!Redis.INSTANCE.exists("RECOVERY-LIST")) {
+            log.info("Nothing to recover");
+            return;
+        }
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            UserRecoveryData[] users = objectMapper.readValue(Redis.INSTANCE.getValue("RECOVERY-LIST"), UserRecoveryData[].class);
+            for(UserRecoveryData user: users) {
+                getConnection(user.user, user.nick, false);
+                log.info(String.format("Recovered %s with nick %s", user.user, user.nick));
+            }
+        } catch (JsonProcessingException e) {
+            log.error("Error parsing recovery-list", e);
+        } catch (IOException e) {
+            log.error("Failed to recover irc connection", e);
         }
     }
 }
