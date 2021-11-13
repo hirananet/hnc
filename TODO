@@ -1,2 +1,3 @@
 - Parsear y recordar cambios de nick
-- Recordar lista de canales y enviar en nuevas conexiones
+- Recordar lista de canales y enviar en nuevas conexiones (y unirse al recuperar)
+- reenviar y mantener topic
