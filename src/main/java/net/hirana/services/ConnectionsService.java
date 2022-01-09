@@ -35,6 +35,10 @@ public enum ConnectionsService {
         lastNick.put(user, nick);
     }
 
+    public String getLastNick(String user) {
+        return this.lastNick.get(user);
+    }
+
     public IRClient getConnection(String user, String nick, boolean saveNewUsers) throws IOException {
         if(clientsOfUsers.containsKey(user)) {
             return clientsOfUsers.get(user);
