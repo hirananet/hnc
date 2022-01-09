@@ -1,6 +1,5 @@
 package net.hirana.irc.parser;
 
-import com.sun.org.apache.xpath.internal.operations.Or;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -22,15 +21,6 @@ public class RawMessage {
 
     public RawMessage(String message) {
         this.raw = message;
-        Pattern tagPattern = Pattern.compile("@((;?)([^\\s=]+)=([^\\s;]+))+", Pattern.CASE_INSENSITIVE);
-        Matcher tagMatcher = tagPattern.matcher(message);
-        if(tagMatcher.find()) {
-            String tagStr = tagMatcher.group(0).substring(1);
-            for(String kv: tagStr.split(";")) {
-                String[] kvs = kv.split("=");
-                tags.put(kvs[0], kvs[1]);
-            }
-        }
         Pattern infoPattern = Pattern.compile(":([^:]+):?(.*)", Pattern.CASE_INSENSITIVE);
         Matcher infoMatcher = infoPattern.matcher(message);
         if(!infoMatcher.find()) {
@@ -38,6 +28,15 @@ public class RawMessage {
             return;
         }
         this.info = Optional.of(infoMatcher.group(1));
+        Pattern tagPattern = Pattern.compile("@((;?)([^\\s=]+)=([^\\s;]+))+", Pattern.CASE_INSENSITIVE);
+        Matcher tagMatcher = tagPattern.matcher(info.get());
+        if(tagMatcher.find()) {
+            String tagStr = tagMatcher.group(0).substring(1);
+            for(String kv: tagStr.split(";")) {
+                String[] kvs = kv.split("=");
+                tags.put(kvs[0], kvs[1]);
+            }
+        }
         this.content = Optional.of(infoMatcher.group(2));
         this.partials = Arrays.asList(this.info.get().split(" "));
         this.code = this.partials.get(1);

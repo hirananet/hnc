@@ -6,6 +6,7 @@ import net.hirana.irc.parser.SimplyOrigin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.swing.text.html.Option;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -62,6 +63,10 @@ public enum ContextService {
     private void topicChanged(String user, RawMessage message) {
         Pattern topicPattern = Pattern.compile("#([^\\s]+)");
         Matcher topicMatcher = topicPattern.matcher(message.raw);
+        if(!topicMatcher.find()) {
+            log.error("Error parsing topic" + message.raw);
+            return;
+        }
         Channel chan = new Channel(topicMatcher.group(1));
         String topic = message.content.get();
         setTopicToChannel(user, chan.hashedName, topic);
@@ -70,7 +75,8 @@ public enum ContextService {
     private void nickChange(String user, RawMessage message) {
         String newNick = message.partials.size() > 2 ? message.partials.get(2) : message.content.get();
         SimplyOrigin originalNick = SimplyOrigin.parseUser(message.getOrigin().get().simplyOrigin);
-        if(getLastNick(user).equals(originalNick)) {
+        Optional<String> nick = getLastNick(user);
+        if(!nick.isPresent() || nick.get().equals(originalNick)) {
             setLastNick(user, newNick);
         }
     }
@@ -85,14 +91,16 @@ public enum ContextService {
     private void join(String user, RawMessage message) {
         SimplyOrigin userJoinded = SimplyOrigin.parseUser(message.getOrigin().get().simplyOrigin);
         Channel channel = new Channel(message.content.isPresent() ? message.content.get() : message.partials.get(2));
-        if(userJoinded.nick.equals(getLastNick(user))) {
+        Optional<String> nick = getLastNick(user);
+        if(!nick.isPresent() || userJoinded.nick.equals(nick.get())) {
             joinedToChannel(user, channel.hashedName);
         }
     }
 
     private void part(String user, RawMessage message) {
         SimplyOrigin userParted = SimplyOrigin.parseUser(message.getOrigin().get().simplyOrigin);
-        if(userParted.nick.equals(getLastNick(user))) {
+        Optional<String> nick = getLastNick(user);
+        if(!nick.isPresent() || userParted.nick.equals(nick.get())) {
             Channel channel = new Channel(message.partials.size() > 2 ? message.partials.get(2) : message.content.get());
             leaveToChannel(user, channel.hashedName);
         }
@@ -107,14 +115,16 @@ public enum ContextService {
             return;
         }
         SimplyOrigin userKicked = SimplyOrigin.parseUser(kickDataMatcher.group(2));
-        if(userKicked.nick.equals(getLastNick(user))) {
+        Optional<String> nick = getLastNick(user);
+        if(!nick.isPresent() || userKicked.nick.equals(nick.get())) {
             leaveToChannel(user, chan.hashedName);
         }
     }
 
     private void quit(String user, RawMessage message) {
         SimplyOrigin userQuitted = SimplyOrigin.parseUser(message.getOrigin().get().simplyOrigin);
-        if(userQuitted.nick.equals(getLastNick(user))) {
+        Optional<String> nick = getLastNick(user);
+        if(userQuitted.nick.equals(nick.get())) {
             // this can't be
         }
     }
@@ -123,8 +133,8 @@ public enum ContextService {
         lastNick.put(user, nick);
     }
 
-    public String getLastNick(String user) {
-        return this.lastNick.get(user);
+    public Optional<String> getLastNick(String user) {
+        return Optional.ofNullable(this.lastNick.get(user));
     }
 
     public void joinedToChannel(String user, String channelHash) {

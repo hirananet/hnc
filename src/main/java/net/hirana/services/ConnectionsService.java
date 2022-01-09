@@ -123,10 +123,11 @@ public enum ConnectionsService {
             String content = msg.substring(msg.indexOf(":")+1);
             boolean send = false;
             boolean isChannel = "#".equals(nickOrChannel.substring(0,1));
-            log.info("SEND NOTIFICATION FROM "+nickOrChannel+" TO " + user);
+            log.info("EVALUATING NOTIFICATION FROM "+nickOrChannel+" TO " + user);
             if(isChannel) {
                 // is channel
-                String pingNick = ContextService.INSTANCE.getLastNick(user);
+                Optional<String> nick = ContextService.INSTANCE.getLastNick(user);
+                String pingNick = nick.isPresent() ? nick.get() : user;
                 String pingUser = user;
                 String regex = String.format("(^|\\s)%s(\\s|$)",pingNick);
                 boolean pingToNick = Pattern.compile(regex).matcher(content).find();
