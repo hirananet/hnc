@@ -58,18 +58,18 @@ public class HncServer extends WebSocketServer {
     }
 
     private void fakeStartSequence(WebSocket ws) {
-        sendAsServer(ws, "001", "Welcome to HCN Bridge.");
+        sendAsServer(ws, "001", "Welcome to HNC Bridge.");
         sendAsServer(ws, "002", "Your host is HCNBridge, running version Alpha.");
         sendAsServer(ws, "003", "This server was created now");
         sendAsServer(ws, "004", "N/A.");
-        sendAsServer(ws, "251", ":There are 0 users and 1 invisible on 1 servers");
-        sendAsServer(ws, "252", "0 :operator(s) online");
-        sendAsServer(ws, "253", "1 :unknown connections");
-        sendAsServer(ws, "254", "1 : channels formed");
+        sendAsServer(ws, "251", ":There are Unknown users and 1 invisible on Unknown servers");
+        sendAsServer(ws, "252", "Unknown :operator(s) online");
+        sendAsServer(ws, "253", "Unknown :unknown connections");
+        sendAsServer(ws, "254", "Unknown :channels formed");
         sendAsServer(ws, "375", "hnc.hirana.net message of the day.");
         sendAsServer(ws, "375", "Welcome to HCN Bridge.");
         sendAsServer(ws, "376", "end message of the day.");
-        sendAsServer(ws, "396", "HCN-sui.3d1.88.99.IP :is now your displayed host.");
+        sendAsServer(ws, "396", "HND-UNKNOWN.IP :is now your displayed host.");
         ConnectionsService.INSTANCE.sendQueuedMessages(
                 udatas.get(ws.<Long>getAttachment()).user,
                 ws

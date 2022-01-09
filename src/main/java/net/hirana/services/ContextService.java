@@ -7,10 +7,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.swing.text.html.Option;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -138,19 +135,30 @@ public enum ContextService {
     }
 
     public void joinedToChannel(String user, String channelHash) {
-        Optional<Channel> channel = channels.get(user).stream().filter(chan -> chan.hashedName.equals(channelHash)).findFirst();
-        if (!channel.isPresent()) {
-            channels.get(user).add(new Channel(channelHash));
+        List<Channel> chanList = channels.get(user);
+        if(chanList == null) {
+            channels.put(user, Arrays.asList(new Channel(channelHash)));
         } else {
-            log.error(String.format("@%s You are previous joined to channel %s", user, channelHash));
+            Optional<Channel> channel = chanList.stream().filter(chan -> chan.hashedName.equals(channelHash)).findFirst();
+            if (!channel.isPresent()) {
+                channels.get(user).add(new Channel(channelHash));
+            } else {
+                log.error(String.format("@%s You are previous joined to channel %s", user, channelHash));
+            }
         }
     }
 
     public void leaveToChannel(String user, String channelHash) {
+        if(channels.get(user) == null) {
+            return;
+        }
         channels.get(user).removeIf(chan -> chan.hashedName.equals(channelHash));
     }
 
     public void setTopicToChannel(String user, String channelHash, String topic) {
+        if(channels.get(user) == null) {
+            return;
+        }
         Optional<Channel> channel = channels.get(user).stream().filter(chan -> chan.hashedName.equals(channelHash)).findFirst();
         if (channel.isPresent()) {
             channel.get().topic = topic;
