@@ -14,18 +14,22 @@ public enum Database {
     private HikariConfig config = new HikariConfig();
     private HikariDataSource ds;
     private static final String tableName = "anope_db_NickCore";
-    private Connection conn;
+    private static final long MaxLifetime = 25000 * 1000;
+    private static final long IdleTimeout = 1800000;
 
     public void init() throws SQLException {
         config.setJdbcUrl( getUrl(System.getenv("DB_HOST"), Integer.parseInt(System.getenv("DB_PORT")), System.getenv("DB_NAME")) );
         config.setUsername( System.getenv("DB_USERNAME"));
         config.setPassword( System.getenv("DB_PASSWORD") );
+        config.setMaxLifetime(MaxLifetime);
+        config.setIdleTimeout(IdleTimeout);
+        config.setMinimumIdle(3);
+        config.setMaximumPoolSize(10);
         config.addDataSourceProperty( "cachePrepStmts" , "true" );
         config.addDataSourceProperty( "prepStmtCacheSize" , "250" );
         config.addDataSourceProperty( "prepStmtCacheSqlLimit" , "2048" );
         config.setConnectionTestQuery("SELECT version()");
         ds = new HikariDataSource( config );
-        this.conn = ds.getConnection();
     }
 
     private String getUrl(String host, Integer port, String dbName) {
