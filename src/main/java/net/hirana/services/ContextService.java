@@ -6,7 +6,6 @@ import net.hirana.irc.parser.SimplyOrigin;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import javax.swing.text.html.Option;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -166,4 +165,9 @@ public enum ContextService {
             log.error(String.format("@%s Can't set topic on non existant channel %s", user, channelHash));
         }
     }
+
+    public List<Channel> getChannels(String user) {
+        return channels.get(user);
+    }
+
 }

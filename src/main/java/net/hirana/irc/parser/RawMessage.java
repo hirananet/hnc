@@ -52,22 +52,26 @@ public class RawMessage {
                 return this.origin;
             }
             OriginData od = new OriginData();
-            if (uOriginMatcher.groupCount() < 3 || uOriginMatcher.group(2) != null) {
-                od.server = Optional.of(uOriginMatcher.group(1));
+            if (uOriginMatcher.groupCount() == 1) {
+                od.server = Optional.of(escape(uOriginMatcher.group(1)));
                 od.simplyOrigin = od.server.get();
-            } else if (uOriginMatcher.groupCount() < 4 || uOriginMatcher.group(3) != null) {
-                od.server = Optional.of(uOriginMatcher.group(2));
-                od.identity = Optional.of(uOriginMatcher.group(1).substring(0, uOriginMatcher.group(1).length() - 1));
+            } else if (uOriginMatcher.groupCount() == 2) {
+                od.server = Optional.of(escape(uOriginMatcher.group(2)));
+                od.identity = Optional.of(escape(uOriginMatcher.group(1).substring(0, uOriginMatcher.group(1).length() - 1)));
                 od.simplyOrigin = od.identity.get();
             } else {
-                od.server = Optional.of(uOriginMatcher.group(3));
-                od.identity = Optional.of(uOriginMatcher.group(2).substring(0, uOriginMatcher.group(2).length() - 1));
+                od.server = Optional.of(escape(uOriginMatcher.group(3)));
+                od.identity = Optional.of(escape(uOriginMatcher.group(2).substring(0, uOriginMatcher.group(2).length() - 1)));
                 od.nick = Optional.of(uOriginMatcher.group(1).substring(0, uOriginMatcher.group(1).length() - 1));
                 od.simplyOrigin = od.nick.get();
             }
             this.origin = Optional.of(od);
         }
         return this.origin;
+    }
+
+    private String escape(String input) {
+        return input.substring(0, input.length()-1);
     }
 
 }

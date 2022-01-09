@@ -1,6 +1,7 @@
 package net.hirana.websocket;
 
 import net.hirana.irc.IRClient;
+import net.hirana.irc.parser.Channel;
 import net.hirana.services.ConnectionsService;
 import net.hirana.services.ContextService;
 import net.hirana.services.Database;
@@ -16,6 +17,7 @@ import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class HncServer extends WebSocketServer {
@@ -135,6 +137,14 @@ public class HncServer extends WebSocketServer {
                 log.debug(String.format("Exists connection %s %s", udata.user, sendFakeMotd ? "YES" : "NO"));
                 udata.irc = ConnectionsService.INSTANCE.getConnection(udata.user, udata.nick, true);
                 ConnectionsService.INSTANCE.assocWsWithUser(webSocket, udata.user);
+                List<Channel> channels = ContextService.INSTANCE.getChannels(udata.user);
+                if(channels != null) {
+                    String channelSTR = "";
+                    for (Channel chan: channels) {
+                        channelSTR = chan.hashedName + " ";
+                    }
+                    sendAsServer(webSocket, "319", channelSTR);
+                }
                 ConnectionsService.INSTANCE.readOldMessagesFromRedis(webSocket, udata.user);
                 if (sendFakeMotd) {
                     this.fakeStartSequence(webSocket);
