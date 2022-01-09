@@ -24,19 +24,11 @@ public enum ConnectionsService {
     private Map<String, IRClient> clientsOfUsers = new HashMap<>();
     private Map<String, List<WsData>> wsList = new HashMap<>();
     private Map<String, List<String>> queuedMessages = new HashMap<>();
-    private Map<String, String> lastNick = new HashMap<>();
+
     private Map<String, Date> lastNotificationSended = new HashMap<>();
 
     public boolean existsConnection(String user) {
         return clientsOfUsers.containsKey(user);
-    }
-
-    public void setLastNick(String user, String nick) {
-        lastNick.put(user, nick);
-    }
-
-    public String getLastNick(String user) {
-        return this.lastNick.get(user);
     }
 
     public IRClient getConnection(String user, String nick, boolean saveNewUsers) throws IOException {
@@ -134,7 +126,7 @@ public enum ConnectionsService {
             log.info("SEND NOTIFICATION FROM "+nickOrChannel+" TO " + user);
             if(isChannel) {
                 // is channel
-                String pingNick = lastNick.get(user);
+                String pingNick = ContextService.INSTANCE.getLastNick(user);
                 String pingUser = user;
                 String regex = String.format("(^|\\s)%s(\\s|$)",pingNick);
                 boolean pingToNick = Pattern.compile(regex).matcher(content).find();

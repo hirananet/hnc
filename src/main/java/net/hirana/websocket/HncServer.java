@@ -2,6 +2,7 @@ package net.hirana.websocket;
 
 import net.hirana.irc.IRClient;
 import net.hirana.services.ConnectionsService;
+import net.hirana.services.ContextService;
 import net.hirana.services.Database;
 import org.java_websocket.WebSocket;
 import org.java_websocket.handshake.ClientHandshake;
@@ -96,7 +97,7 @@ public class HncServer extends WebSocketServer {
             if(udata.irc != null) {
                 try {
                     udata.irc.sendMessage(String.format("NICK %s", udata.nick));
-                    ConnectionsService.INSTANCE.setLastNick(udata.user != null ? udata.user : udata.nick, udata.nick);
+                    ContextService.INSTANCE.setLastNick(udata.user != null ? udata.user : udata.nick, udata.nick);
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
@@ -105,7 +106,7 @@ public class HncServer extends WebSocketServer {
             String userpass = parts.length > 1 ? parts[1] : "";
             String[] uparts = userpass.split(":");
             udata.user = uparts[0];
-            ConnectionsService.INSTANCE.setLastNick(udata.user, udata.nick != null ? udata.nick : udata.user);
+            ContextService.INSTANCE.setLastNick(udata.user, udata.nick != null ? udata.nick : udata.user);
             udata.password = uparts[1];
             log.info("Loging with: " + udata.user);
             try {
