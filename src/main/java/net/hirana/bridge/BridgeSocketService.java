@@ -25,18 +25,16 @@ public class BridgeSocketService extends WebSocketServer {
         this.hostName = hostName;
     }
 
-    public String getHostName() {
-        return hostName;
-    }
-
     private void sendAsServer(WebSocket webSocket, String code, String content) {
-        webSocket.send(String.format(":%s %s :%s", hostName, code, content));
+        BridgeId id = webSocket.getAttachment();
+        webSocket.send(String.format(":%s %s :%s", id.getHostName(), code, content));
     }
 
     @Override
     public void onOpen(WebSocket webSocket, ClientHandshake clientHandshake) {
         log.info(String.format("New connection requested from %s, connection #%d", webSocket.getRemoteSocketAddress().getAddress().getHostAddress(), connectionNumber));
         BridgeId bridgeId = new BridgeId(connectionNumber);
+        bridgeId.setHostName(String.format("bouncer-%d.%s", connectionNumber, hostName));
         webSocket.setAttachment(bridgeId);
         connectionNumber++;
         sendHandshake(webSocket);

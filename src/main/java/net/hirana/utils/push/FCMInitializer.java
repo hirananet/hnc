@@ -11,7 +11,7 @@ import java.io.*;
 public enum FCMInitializer {
     INSTANCE;
 
-    private static final Logger log = LoggerFactory.getLogger(ConnectionsService.class);
+    private static final Logger log = LoggerFactory.getLogger(FCMInitializer.class);
 
     public void init(String fileCredential) {
         if (FirebaseApp.getApps().isEmpty()) {

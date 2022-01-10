@@ -61,7 +61,7 @@ public class RawMessage {
                 od.simplyOrigin = od.identity.get();
             } else {
                 od.server = Optional.of(escape(uOriginMatcher.group(3)));
-                od.identity = Optional.of(escape(uOriginMatcher.group(2).substring(0, uOriginMatcher.group(2).length() - 1)));
+                od.identity = Optional.of(escape(uOriginMatcher.group(2)));
                 od.nick = Optional.of(uOriginMatcher.group(1).substring(0, uOriginMatcher.group(1).length() - 1));
                 od.simplyOrigin = od.nick.get();
             }

@@ -3,6 +3,8 @@ package net.hirana.context;
 import net.hirana.bridge.BridgeId;
 import net.hirana.irc.parser.Message;
 import net.hirana.irc.parser.RawMessage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.*;
@@ -10,7 +12,9 @@ import java.util.*;
 public enum ContextManager {
     INSTANCE;
 
-    public List<String> usersConnected;
+    private static final Logger log = LoggerFactory.getLogger(ContextManager.class);
+
+    public List<String> usersConnected = new ArrayList<>();
     private HashMap<String, String> lastUserNick = new HashMap<>();
 
     public List<String> onUserConnectedFromNewDevice(BridgeId id) throws IOException {
@@ -25,6 +29,7 @@ public enum ContextManager {
             contextSnapshot.addAll(UsersContext.INSTANCE.getChannelUsersContext(id));
             contextSnapshot.addAll(UsersContext.INSTANCE.getQueuedMessages(id));
         }
+        contextSnapshot.add(UsersContext.INSTANCE.getFinalMessage(id));
         return contextSnapshot;
     }
 
@@ -37,6 +42,7 @@ public enum ContextManager {
     }
 
     public void ircMessage(String user, String message) {
+        log.debug("Parsing irc message");
         boolean deliveredMessage = BridgeContext.INSTANCE.deliverMessage(user, message);
         RawMessage raw = new RawMessage(message);
         if(deliveredMessage) {

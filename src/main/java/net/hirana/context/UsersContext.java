@@ -50,19 +50,21 @@ public enum UsersContext {
         Optional<List<String>> channels = Optional.ofNullable(channelsForUser.get(id.getUser()));
         log.debug("Sending channel context? " + (channels.isPresent() ? "yes" : "no"));
         if (channels.isPresent()) {
-            String chanString = "";
             for (String chanHash : channels.get()) {
-                chanString += chanHash + " ";
+                channelContext.add(formatMessage(id.getHostName(), "JOIN", chanHash));
             }
             log.debug("channel context send");
-            channelContext.add(formatMessage(id.getHostName(), "319", chanString));
         }
         return channelContext;
     }
 
+    public List<String> getListOfChats(BridgeId id) {
+        return channelsForUser.get(id.getUser());
+    }
+
     public List<String> getChannelTopicContext(BridgeId id) {
         final List<String> topicContext = new ArrayList<>();
-        List<String> channels = getChannelContext(id);
+        List<String> channels = getListOfChats(id);
         Optional userTopics = Optional.ofNullable(topicsInChannels.get(id.getUser()));
         log.debug("Sending topics context? " + (userTopics.isPresent() ? "yes" : "no"));
         if(userTopics.isPresent()) {
@@ -79,7 +81,7 @@ public enum UsersContext {
 
     public List<String> getChannelUsersContext(BridgeId id) {
         final List<String> usersContext = new ArrayList<>();
-        List<String> channels = getChannelContext(id);
+        List<String> channels = getListOfChats(id);
         Optional uicE = Optional.ofNullable(usersInChannel.get(id.getUser()));
         log.debug("Sending users context? " + (uicE.isPresent() ? "yes" : "no"));
         if(uicE.isPresent()) {
@@ -91,12 +93,16 @@ public enum UsersContext {
                         userStr += user + " ";
                     }
                     log.debug("user context send");
-                    usersContext.add(formatMessage(id.getHostName(), "353 " + chan, userStr));
+                    usersContext.add(formatMessage(id.getHostName(), String.format("353 %s=%s", id.getUser(), chan), userStr));
                     usersContext.add(formatMessage(id.getHostName(), "366 " + chan, "end of names."));
                 }
             });
         }
         return usersContext;
+    }
+
+    public String getFinalMessage(BridgeId id) {
+        return formatMessage(id.getHostName(), "HNC", "Finish to process user context, welcome to Hnc");
     }
 
     public List<String> getQueuedMessages(BridgeId id) {
@@ -108,6 +114,7 @@ public enum UsersContext {
     }
 
     public void processContext(String user, RawMessage raw) {
+        log.debug("Processing context of message from user "+user);
         if("TOPIC".equals(raw.code)) {
             // topic changed
             log.debug("IRC - Processing topic for user " + user);
@@ -245,6 +252,15 @@ public enum UsersContext {
     private boolean itsMe(String user, String nick) {
         Optional<String> lastNick = ContextManager.INSTANCE.getLastNick(user);
         return nick.equals(user) || (lastNick.isPresent() && lastNick.get().equals(nick));
+    }
+
+    private String getLastNick(String user) {
+        Optional<String> lastNick = ContextManager.INSTANCE.getLastNick(user);
+        if(lastNick.isPresent()) {
+            return lastNick.get();
+        } else {
+            return user;
+        }
     }
 
     public void joinedToChannel(String user, String channelHash) {

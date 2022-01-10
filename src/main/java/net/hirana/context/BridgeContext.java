@@ -3,6 +3,7 @@ package net.hirana.context;
 import net.hirana.bridge.BridgeId;
 import net.hirana.utils.DatabaseService;
 import org.java_websocket.WebSocket;
+import org.java_websocket.exceptions.WebsocketNotConnectedException;
 import org.mindrot.jbcrypt.BCrypt;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,7 +20,7 @@ public enum BridgeContext {
     private static final Logger log = LoggerFactory.getLogger(BridgeContext.class);
 
     private DatabaseService db = DatabaseService.INSTANCE;
-    private HashMap<String, List<WebSocket>> bridges;
+    private HashMap<String, List<WebSocket>> bridges = new HashMap<>();
 
     public boolean tryLogin(WebSocket websocket) {
         BridgeId bridge = websocket.getAttachment();
@@ -77,7 +78,11 @@ public enum BridgeContext {
             return false;
         }
         for (WebSocket webSocket : bridges.get(user)) {
-            webSocket.send(message);
+            try {
+                webSocket.send(message);
+            } catch(WebsocketNotConnectedException wnce) {
+                bridges.get(user).remove(webSocket);
+            }
         }
         return true;
     }

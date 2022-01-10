@@ -9,6 +9,7 @@ import net.hirana.utils.RedisService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.sql.SQLException;
 
@@ -20,8 +21,23 @@ public class App
 {
     private static final Logger log = LoggerFactory.getLogger(App.class);
 
+    private static BridgeSocketService bWs;
+
     public static void main( String[] args )
     {
+        log.debug("Logs in debug mode");
+        Runtime.getRuntime().addShutdownHook(new Thread(() -> {
+            log.info("Requesting shutdown");
+            try {
+                if(bWs != null) {
+                    bWs.stop();
+                }
+            } catch (IOException e) {
+                log.error("IO closing", e);
+            } catch (InterruptedException e) {
+                log.error("Interrupted closing", e);
+            }
+        }));
         log.info("Starting Hirana Network Connection - Bouncer");
         try {
             log.info("Connecting to redis");
@@ -43,10 +59,10 @@ public class App
         IRContext.INSTANCE.init("irc.hirana.net", 6667);
         try {
             int port = 7000;
-            String hostname = "v2-bouncer.d.hirana.net";
+            String hostname = "hnc.hirana.net";
             log.info(String.format("Starting bridge hostname [%s] sockets in port [%d]", hostname, port));
-            BridgeSocketService wsServer = new BridgeSocketService(port, hostname);
-            wsServer.start();
+            bWs = new BridgeSocketService(port, hostname);
+            bWs.start();
             log.info("Finish to started Hirana Network Connection | main thread in sleep.");
             while(true) {}
         } catch (UnknownHostException e) {
