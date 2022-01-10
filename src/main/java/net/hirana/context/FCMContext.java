@@ -24,7 +24,7 @@ public enum FCMContext {
     public void sendMessageToUser(String user, String title, String content) {
         String key = String.format("FCM-%s", user);
         Date now = new Date();
-        if(lastNotificationSended.get(user).getTime() + 20000 > now.getTime()) { // pasaron 10 secs desde la ultima notificacion?
+        if(lastNotificationSended.get(user) != null && lastNotificationSended.get(user).getTime() + 20000 > now.getTime()) { // pasaron 10 secs desde la ultima notificacion?
             return;
         }
         Optional<String> fcmToken = Optional.ofNullable(RedisService.INSTANCE.getValue(key));
