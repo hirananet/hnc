@@ -1,4 +1,4 @@
-package net.hirana.services;
+package net.hirana.utils;
 
 import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
@@ -8,7 +8,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
-public enum Database {
+public enum DatabaseService {
     INSTANCE;
 
     private HikariConfig config = new HikariConfig();
@@ -46,5 +46,4 @@ public enum Database {
             return null;
         }
     }
-
 }

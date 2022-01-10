@@ -1,4 +1,4 @@
-package net.hirana.push;
+package net.hirana.utils.push;
 
 public class PushNotificationRequest {
     private String title;

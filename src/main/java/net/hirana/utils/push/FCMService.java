@@ -1,4 +1,4 @@
-package net.hirana.push;
+package net.hirana.utils.push;
 
 import com.google.firebase.messaging.AndroidConfig;
 import com.google.firebase.messaging.AndroidNotification;

@@ -1,9 +1,8 @@
 package net.hirana.irc;
 
+import net.hirana.context.ContextManager;
 import net.hirana.irc.utils.IMessageCallback;
 import net.hirana.irc.utils.MessageHandler;
-import net.hirana.services.ConnectionsService;
-import net.hirana.services.ContextService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -73,8 +72,7 @@ public class IRClient implements IMessageCallback {
             if(message.indexOf("PING") == 0) {
                 this.sendMessage("PONG " + message.substring(5));
             } else {
-                ContextService.INSTANCE.processContext(this.user, message);
-                ConnectionsService.INSTANCE.resendMessage(this.user, message);
+                ContextManager.INSTANCE.ircMessage(this.user, message);
             }
         } catch (Exception e) {
             log.error("Exception processing message: ", e);

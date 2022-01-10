@@ -1,4 +1,4 @@
-package net.hirana.push;
+package net.hirana.utils.push;
 
 public enum NotificationParameter {
     SOUND("default"),

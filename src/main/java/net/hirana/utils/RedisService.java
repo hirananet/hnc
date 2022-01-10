@@ -1,4 +1,4 @@
-package net.hirana.services;
+package net.hirana.utils;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -6,10 +6,12 @@ import redis.clients.jedis.Jedis;
 
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.util.Arrays;
+import java.util.List;
 
-public enum Redis {
+public enum RedisService {
     INSTANCE;
-    private static final Logger log = LoggerFactory.getLogger(Redis.class);
+    private static final Logger log = LoggerFactory.getLogger(RedisService.class);
 
     private final String host = System.getenv("REDIS_HOST") != null ? System.getenv("REDIS_HOST") : "localhost";
     private final int port = System.getenv("REDIS_PORT") != null ? Integer.parseInt(System.getenv("REDIS_PORT")) : 6379;
@@ -37,5 +39,15 @@ public enum Redis {
 
     public boolean exists(String key) {
         return this.jedis.exists(key);
+    }
+
+    public void pushValueQueue(String key, String value) {
+        this.jedis.rpush(key, value);
+    }
+
+    public List<String> getQueue(String key) {
+        List<String> queue = this.jedis.lrange(key, 0, -1);
+        this.jedis.del(key);
+        return queue;
     }
 }

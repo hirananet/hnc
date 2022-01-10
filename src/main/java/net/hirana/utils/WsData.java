@@ -1,4 +1,4 @@
-package net.hirana.websocket;
+package net.hirana.utils;
 
 import org.java_websocket.WebSocket;
 
