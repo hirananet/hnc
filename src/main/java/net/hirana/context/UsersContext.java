@@ -21,8 +21,10 @@ public enum UsersContext {
     private HashMap<String, HashMap<String, List<String>>> usersInChannel = new HashMap<>();
     private HashMap<String, HashMap<String, String>> topicsInChannels = new HashMap<>();
 
+
     public List<String> makeWelcomeContext(BridgeId id, long usersConnected) {
         List<String> context = new ArrayList();
+        log.debug("Sending welcome context to user" + id.getUser());
         context.add(String.format(":%s %s :%s", id.getHostName(), "001", "Welcome to HNC Bridge."));
         context.add(String.format(":%s %s :%s", id.getHostName(), "002", "Your host is HNCBridge, running v2-Alpha."));
         context.add(String.format(":%s %s :%s", id.getHostName(), "003", "This server was created now."));
@@ -46,11 +48,13 @@ public enum UsersContext {
     public List<String> getChannelContext(BridgeId id) {
         List<String> channelContext = new ArrayList<>();
         Optional<List<String>> channels = Optional.ofNullable(channelsForUser.get(id.getUser()));
+        log.debug("Sending channel context? " + (channels.isPresent() ? "yes" : "no"));
         if (channels.isPresent()) {
             String chanString = "";
             for (String chanHash : channels.get()) {
                 chanString += chanHash + " ";
             }
+            log.debug("channel context send");
             channelContext.add(formatMessage(id.getHostName(), "319", chanString));
         }
         return channelContext;
@@ -60,10 +64,12 @@ public enum UsersContext {
         final List<String> topicContext = new ArrayList<>();
         List<String> channels = getChannelContext(id);
         Optional userTopics = Optional.ofNullable(topicsInChannels.get(id.getUser()));
+        log.debug("Sending topics context? " + (userTopics.isPresent() ? "yes" : "no"));
         if(userTopics.isPresent()) {
             channels.forEach(chan -> {
                 Optional<String> topic = Optional.ofNullable(topicsInChannels.get(id.getUser()).get(chan));
                 if(topic.isPresent()) {
+                    log.debug("topic context send");
                     topicContext.add(formatMessage(id.getHostName(), "332 "+chan, topic.get()));
                 }
             });
@@ -75,6 +81,7 @@ public enum UsersContext {
         final List<String> usersContext = new ArrayList<>();
         List<String> channels = getChannelContext(id);
         Optional uicE = Optional.ofNullable(usersInChannel.get(id.getUser()));
+        log.debug("Sending users context? " + (uicE.isPresent() ? "yes" : "no"));
         if(uicE.isPresent()) {
             channels.forEach(chan -> {
                 Optional<List<String>> uic = Optional.ofNullable(usersInChannel.get(id.getUser()).get(chan));
@@ -83,6 +90,7 @@ public enum UsersContext {
                     for (String user : uic.get()) {
                         userStr += user + " ";
                     }
+                    log.debug("user context send");
                     usersContext.add(formatMessage(id.getHostName(), "353 " + chan, userStr));
                     usersContext.add(formatMessage(id.getHostName(), "366 " + chan, "end of names."));
                 }
@@ -102,31 +110,42 @@ public enum UsersContext {
     public void processContext(String user, RawMessage raw) {
         if("TOPIC".equals(raw.code)) {
             // topic changed
+            log.debug("IRC - Processing topic for user " + user);
             this.topic(user, raw);
         }
         if( "332".equals(raw.code)) {
+            log.debug("IRC - Processing topic 2 for user " + user);
             this.topicChanged(user, raw);
         }
         if("NICK".equals(raw.code)) {
+            log.debug("IRC - Processing nick for user " + user);
             this.nickChange(user, raw);
         }
         if("319".equals(raw.code)) {
             // channel list
+            log.debug("IRC - Processing channels for user " + user);
             this.channelList(user, raw);
         }
         if("JOIN".equals(raw.code)) {
+            log.debug("IRC - Processing join for user " + user);
             this.join(user, raw);
         }
         if("PART".equals(raw.code)) {
+            log.debug("IRC - Processing part for user " + user);
             this.part(user, raw);
         }
         if("KICK".equals(raw.code)) {
+            log.debug("IRC - Processing kick for user " + user);
             this.kick(user, raw);
         }
         if("QUIT".equals(raw.code)) {
+            log.debug("IRC - Processing quit for user " + user);
             this.quit(user, raw);
         }
-        // TODO: list of users in channel
+        if("353".equals(raw.code)) {
+            log.debug("IRC - Processing names for user " + user);
+            this.names(user, raw);
+        }
     }
 
     private void topic(String user, RawMessage message) {
@@ -153,7 +172,7 @@ public enum UsersContext {
         if(itsMe(user, originalNick.nick)) {
             ContextManager.INSTANCE.setNick(user, newNick);
         } else {
-            changeNickInAllChannels(user, originalNick, newNick);
+            changeNickInAllChannels(user, originalNick.nick, newNick);
         }
     }
 
@@ -170,7 +189,7 @@ public enum UsersContext {
         if(itsMe(user, userJoinded.nick)) {
             joinedToChannel(user, channel.hashedName);
         } else {
-            addUserToChannel(user, channel.hashedName, userJoinded);
+            addUserToChannel(user, channel.hashedName, userJoinded.nick);
         }
     }
 
@@ -180,7 +199,21 @@ public enum UsersContext {
         if(itsMe(user, userParted.nick)) {
             leaveToChannel(user, channel.hashedName);
         } else {
-            removeUserFromChannel(user, channel.hashedName, userParted);
+            removeUserFromChannel(user, channel.hashedName, userParted.nick);
+        }
+    }
+
+    private void names(String user, RawMessage raw) {
+        String[] users = raw.content.get().trim().split(" ");
+        Pattern namesPattern = Pattern.compile("(=|@|\\*)([^:]+):", Pattern.CASE_INSENSITIVE);
+        Matcher namesMatcher = namesPattern.matcher(raw.raw);
+        if(!namesMatcher.find() || namesMatcher.groupCount() < 2) {
+            log.error("Error parsing names for user " + user, raw.raw);
+            return;
+        }
+        Channel chan = new Channel(namesMatcher.group(2).trim());
+        for (String userName: users) {
+            addUserToChannel(user, chan.hashedName, userName);
         }
     }
 
@@ -196,7 +229,7 @@ public enum UsersContext {
         if(itsMe(user, userKicked.nick)) {
             leaveToChannel(user, chan.hashedName);
         } else {
-            removeUserFromChannel(user, chan.hashedName, userKicked);
+            removeUserFromChannel(user, chan.hashedName, userKicked.nick);
         }
     }
 
@@ -205,7 +238,7 @@ public enum UsersContext {
         if(itsMe(user, userQuitted.nick)) {
             // this can't be
         } else {
-            removeUserFromAllChannels(user, userQuitted);
+            removeUserFromAllChannels(user, userQuitted.nick);
         }
     }
 
@@ -241,19 +274,43 @@ public enum UsersContext {
         channels.get().put(channelHash, topic);
     }
 
-    public void addUserToChannel(String user, String channelHash, SimplyOrigin nickToAdd) {
-        // TODO
+    public void addUserToChannel(String user, String channelHash, String nickToAdd) {
+        Optional uicE = Optional.ofNullable(usersInChannel.get(user));
+        if(!uicE.isPresent()) {
+            usersInChannel.put(user, new HashMap<>());
+        }
+        Optional uicC = Optional.ofNullable(usersInChannel.get(user).get(channelHash));
+        if(!uicC.isPresent()) {
+            usersInChannel.get(user).put(channelHash, new ArrayList<>());
+        }
+        if(!usersInChannel.get(user).get(channelHash).contains(nickToAdd)) {
+            log.debug("Adding user to list " + nickToAdd);
+            usersInChannel.get(user).get(channelHash).add(nickToAdd);
+        }
     }
 
-    public void removeUserFromChannel(String user, String channelHash, SimplyOrigin nickToRemove) {
-        // TODO
+    public void removeUserFromChannel(String user, String channelHash, String nickToRemove) {
+        Optional<HashMap<String, List<String>>> uicE = Optional.ofNullable(usersInChannel.get(user));
+        if(uicE.isPresent()) {
+            Optional<List<String>> uicC = Optional.ofNullable(uicE.get().get(channelHash));
+            if(uicC.isPresent()) {
+                log.debug("Removing user from list " + nickToRemove);
+                uicC.get().removeIf(u -> u.equals(nickToRemove));
+            }
+        }
     }
 
-    public void removeUserFromAllChannels(String user, SimplyOrigin nickToRemove) {
-        // TODO
+    public void removeUserFromAllChannels(String user, String nickToRemove) {
+        Optional<HashMap<String, List<String>>> uicE = Optional.ofNullable(usersInChannel.get(user));
+        if(uicE.isPresent()) {
+            log.debug("Removing user from all chanels");
+            uicE.get().entrySet().forEach(entry -> {
+                entry.getValue().removeIf(u -> u.equals(nickToRemove));
+            });
+        }
     }
 
-    public void changeNickInAllChannels(String user, SimplyOrigin originalNick, String newNick) {
+    public void changeNickInAllChannels(String user, String originalNick, String newNick) {
         // TODO
     }
 
