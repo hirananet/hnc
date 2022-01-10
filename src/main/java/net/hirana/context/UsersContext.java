@@ -51,7 +51,7 @@ public enum UsersContext {
         log.debug("Sending channel context? " + (channels.isPresent() ? "yes" : "no"));
         if (channels.isPresent()) {
             for (String chanHash : channels.get()) {
-                channelContext.add(formatMessage(id.getHostName(), "JOIN", chanHash));
+                channelContext.add(formatMessage(String.format("%s!%s@%s",getLastNick(id.getUser()), id.getUser(), id.getHostName()), "JOIN", chanHash));
             }
             log.debug("channel context send");
         }

@@ -67,6 +67,10 @@ public class IRClient implements IMessageCallback {
 
     @Override
     public void onMessageReceived(String message) {
+        if(message == null) {
+            log.error("Nullish message");
+            return;
+        }
         log.debug(String.format("Message received: %s", message));
         try {
             if(message.indexOf("PING") == 0) {
